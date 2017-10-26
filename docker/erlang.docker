@@ -1,4 +1,6 @@
-FROM codewars/base-runner
+ARG repo
+FROM ${repo}/base-runner
+ARG codeuser
 
 # Set the locale
 RUN locale-gen en_US.UTF-8
@@ -19,7 +21,7 @@ RUN cd /tmp \
 RUN mix local.hex --force \
  && mix local.rebar --force
 
-RUN ln -s /home/codewarrior /workspace
+RUN ln -s /home/${codeuser} /workspace
 ENV NPM_CONFIG_LOGLEVEL warn
 
 WORKDIR /runner
@@ -38,9 +40,9 @@ COPY test/runner.js test/
 COPY test/runners/erlang_spec.js test/runners/
 COPY test/runners/elixir_spec.js test/runners/
 
-USER codewarrior
-ENV USER=codewarrior HOME=/home/codewarrior
+USER ${codeuser}
+ENV USER=${codeuser} HOME=/home/${codeuser}
 
-RUN mocha -t 5000 test/runners/{erlang,elixir}_spec.js
+RUN CODEUSER=${codeuser} mocha -t 5000 test/runners/{erlang,elixir}_spec.js
 
 ENTRYPOINT ["node"]

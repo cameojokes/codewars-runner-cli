@@ -1,4 +1,6 @@
-FROM codewars/base-runner
+ARG repo
+FROM ${repo}/base-runner
+ARG codeuser
 
 # Set environment variables
 ENV CHPL_VERSION 1.15.0
@@ -14,11 +16,11 @@ RUN mkdir $CHPL_HOME \
   && make \
   && cd .. \
   && $CHPL_HOME/util/printchplenv
-  
+
 ENV CHPL_HOST_PLATFORM=linux64
 ENV PATH="$CHPL_HOME"/bin/$CHPL_HOST_PLATFORM:"$CHPL_HOME"/util:"$PATH"
 
-RUN ln -s /home/codewarrior /workspace
+RUN ln -s /home/${username} /workspace
 ENV NPM_CONFIG_LOGLEVEL warn
 
 WORKDIR /runner
@@ -35,8 +37,9 @@ COPY frameworks/chapel frameworks/chapel
 COPY test/runner.js test/
 COPY test/runners/chapel_spec.js test/runners/
 
-USER codewarrior
-ENV USER=codewarrior HOME=/home/codewarrior
-RUN mocha -t 10000 test/runners/chapel_spec.js
+
+USER ${codeuser}
+ENV USER=${codeuser} HOME=/home/${codeuser}
+RUN CODEUSER=${codeuser} mocha -t 10000 test/runners/chapel_spec.js
 
 ENTRYPOINT ["node"]

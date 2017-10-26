@@ -24,7 +24,7 @@ describe('go runner', function() {
 
 describe('testing with Ginkgo', function() {
   afterEach(function cleanup(done) {
-    exec('rm -rf /home/codewarrior/go/src/codewarrior', function(err) {
+    exec(`rm -rf /home/${process.env.CODEUSER}/go/src/codewarrior`, function(err) {
       if (err) return done(err);
       done();
     });
@@ -503,7 +503,7 @@ describe('testing with Ginkgo', function() {
 
 describe('Examples', function() {
   afterEach(function cleanup(done) {
-    exec('rm -rf /home/codewarrior/go/src/codewarrior', function(err) {
+    exec(`rm -rf /home/${process.env.CODEUSER}/go/src/codewarrior`, function(err) {
       if (err) return done(err);
       done();
     });

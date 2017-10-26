@@ -1,9 +1,11 @@
-# BUILD-USING:    docker build -t codewars/runner-ocaml .
-# TEST-USING:     docker run --rm -i -t --name=test-runner-ocaml --entrypoint=/bin/bash codewars/runner-ocaml -s
-# RUN-USING:      docker run --rm --name=runner-ocaml codewars/runner-ocaml --help
+# BUILD-USING:    docker build -t ${repo}/runner-ocaml .
+# TEST-USING:     docker run --rm -i -t --name=test-runner-ocaml --entrypoint=/bin/bash ${repo}/runner-ocaml -s
+# RUN-USING:      docker run --rm --name=runner-ocaml ${repo}/runner-ocaml --help
 
 # Pull base image.
-FROM codewars/base-runner
+ARG repo
+FROM ${repo}/base-runner
+ARG codeuser
 
 # Install OCAML
 RUN apt-get install -y software-properties-common
@@ -11,7 +13,7 @@ RUN add-apt-repository -y ppa:avsm/ppa
 RUN apt-get -y update
 RUN apt-get -y install camlp4 ocaml opam
 
-RUN ln -s /home/codewarrior /workspace
+RUN ln -s /home/${codeuser} /workspace
 ENV NPM_CONFIG_LOGLEVEL warn
 
 WORKDIR /runner
@@ -27,8 +29,8 @@ COPY examples/ocaml.yml examples/
 COPY test/runner.js test/
 COPY test/runners/ocaml_spec.js test/runners/
 
-USER codewarrior
-ENV USER=codewarrior HOME=/home/codewarrior
+USER ${codeuser}
+ENV USER=${codeuser} HOME=/home/${codeuser}
 
 # Install opam stuff as the target user (so that they have utop, etc)
 # Note that because aspucd is max of 1.8 (a broken version) on Ubuntu Trusty, we have to use the internal solver
@@ -39,10 +41,10 @@ RUN echo ". $HOME/.opam/opam-init/init.sh > /dev/null 2> /dev/null || true" >> ~
 RUN opam update --use-internal-solver -y
 RUN opam install --use-internal-solver -y ocamlbuild ounit core batteries lwt utop
 
-RUN echo '#!/bin/bash' > /home/codewarrior/run_ocaml.sh
-RUN echo 'eval `opam config env` && $@' >> /home/codewarrior/run_ocaml.sh
-RUN chmod +x /home/codewarrior/run_ocaml.sh
+RUN echo '#!/bin/bash' > /home/${codeuser}/run_ocaml.sh
+RUN echo 'eval `opam config env` && $@' >> /home/${codeuser}/run_ocaml.sh
+RUN chmod +x /home/${codeuser}/run_ocaml.sh
 
-RUN /home/codewarrior/run_ocaml.sh mocha -t 5000 test/runners/ocaml_spec.js
+RUN /home/${codeuser}/run_ocaml.sh CODEUSER=${codeuser} mocha -t 5000 test/runners/ocaml_spec.js
 
-ENTRYPOINT ["/home/codewarrior/run_ocaml.sh", "node"]
+ENTRYPOINT ["/home/${codeuser}/run_ocaml.sh", "node"]

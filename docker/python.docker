@@ -1,8 +1,10 @@
-# EXAMPLE USAGE:  docker run --rm codewars/python-runner run -l python -c "print 1+1 "
-#                 docker run --rm codewars/python-runner run -l python3 -c "print(1+1)"
+# EXAMPLE USAGE:  docker run --rm ${repo}/python-runner run -l python -c "print 1+1 "
+#                 docker run --rm ${repo}/python-runner run -l python3 -c "print(1+1)"
 
 # Pull base image.
-FROM codewars/base-runner
+ARG repo
+FROM ${repo}/base-runner
+ARG codeuser
 
 RUN apt-get update -qq
 
@@ -80,7 +82,7 @@ RUN pip install pickledb tinydb ZODB dataset psycopg2 queries
 RUN pip3 install pickledb tinydb ZODB dataset psycopg2 queries
 
 
-RUN ln -s /home/codewarrior /workspace
+RUN ln -s /home/${codeuser} /workspace
 ENV NPM_CONFIG_LOGLEVEL warn
 
 WORKDIR /runner
@@ -100,8 +102,8 @@ COPY frameworks/python3 frameworks/python3
 COPY test/runner.js test/
 COPY test/runners/python_spec.js test/runners/
 
-USER codewarrior
-ENV USER=codewarrior HOME=/home/codewarrior
-RUN mocha -t 5000 test/runners/python_spec.js
+USER ${codeuser}
+ENV USER=${codeuser} HOME=/home/${codeuser}
+RUN CODEUSER=${codeuser} mocha -t 5000 test/runners/python_spec.js
 
 ENTRYPOINT ["node"]

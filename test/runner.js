@@ -30,6 +30,7 @@ module.exports.assertCodeExamples = function(language, version) {
           languageVersion: version,
           setup: example.setup,
           code: example.answer,
+          codeUser: process.env.CODEUSER || 'dummy',
           fixture: example.fixture,
           testFramework: framework
         }, function(buffer) {

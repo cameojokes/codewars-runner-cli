@@ -1,9 +1,11 @@
-# BUILD-USING:    docker build -t codewars/runner-func .
-# TEST-USING:     docker run --rm -i -t --name=test-runner-func --entrypoint=/bin/bash codewars/runner-haskell -s
-# RUN-USING:      docker run --rm --name=runner-func codewars/runner-func --help
+# BUILD-USING:    docker build -t ${repo}/runner-func .
+# TEST-USING:     docker run --rm -i -t --name=test-runner-func --entrypoint=/bin/bash ${repo}/runner-haskell -s
+# RUN-USING:      docker run --rm --name=runner-func ${repo}/runner-func --help
 
 # Pull base image.
-FROM codewars/base-runner
+ARG repo
+FROM ${repo}/base-runner
+ARG codeuser
 
 # Install Racket
 RUN apt-get -y install racket
@@ -22,15 +24,15 @@ RUN mkdir -p /runner && cp -a /tmp/node_modules /runner
 # ADD cli-runner
 ADD . /runner
 WORKDIR /runner
-RUN ln -s /home/codewarrior /workspace
+RUN ln -s /home/${codeuser} /workspace
 
 # Run the test suite to make sure this thing works
 
-USER codewarrior
+USER ${codeuser}
 # Set environment variables
-ENV USER codewarrior
-ENV HOME /home/codewarrior
-RUN mocha -t 5000 test/runners/{ocaml,racket}_spec.js
+ENV USER ${codeuser}
+ENV HOME /home/${codeuser}
+RUN CODEUSER=${codeuser} mocha -t 5000 test/runners/{ocaml,racket}_spec.js
 
 #timeout is a fallback in case an error with node
 #prevents it from exiting properly

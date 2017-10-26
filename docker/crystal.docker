@@ -1,4 +1,6 @@
-FROM codewars/base-runner
+ARG repo
+FROM ${repo}/base-runner
+ARG codeuser
 
 RUN apt-get update -qq
 RUN apt-get install apt-transport-https
@@ -11,23 +13,21 @@ RUN set -ex \
   && ln -s /opt/crystal/embedded/bin/shards /usr/local/bin/shards \
   && ln -s /opt/crystal/bin/crystal /usr/local/bin/crystal
 
-
-RUN ln -s /home/codewarrior /workspace
+RUN ln -s /home/${codeuser} /workspace
 ENV NPM_CONFIG_LOGLEVEL warn
-
 
 WORKDIR /runner
 COPY package.json package.json
 RUN npm install --production
 
 # Install Shards local to the crystal directory that we will be using
-COPY frameworks/crystal/shard.yml /home/codewarrior/crystal/shard.yml
-COPY frameworks/crystal/formatter.cr /home/codewarrior/crystal/formatter.cr
-RUN chown -R codewarrior:codewarrior /home/codewarrior/crystal
+COPY frameworks/crystal/shard.yml /home/${codeuser}/crystal/shard.yml
+COPY frameworks/crystal/formatter.cr /home/${codeuser}/crystal/formatter.cr
+RUN chown -R ${codeuser}:${codeuser} /home/${codeuser}/crystal
 
-USER codewarrior
-ENV USER=codewarrior HOME=/home/codewarrior
-RUN cd /home/codewarrior/crystal \
+USER ${codeuser}
+ENV USER=${codeuser} HOME=/home/${codeuser}
+RUN cd /home/${codeuser}/crystal \
  && shards install
 
 COPY *.js ./
@@ -39,6 +39,6 @@ COPY examples/crystal.yml examples/
 COPY test/runner.js test/
 COPY test/runners/crystal_spec.js test/runners/
 
-RUN mocha -t 10000 test/runners/crystal_spec.js
+RUN CODEUSER=${codeuser} mocha -t 10000 test/runners/crystal_spec.js
 
 ENTRYPOINT ["node"]

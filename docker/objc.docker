@@ -3,7 +3,9 @@
 # EXAMPLE USAGE:  (Modern objc): docker run objc run -l objc -c $'#import <Foundation/Foundation.h>\n\n// Modern Objective-C version\nNSNumber *ICKGetMaxProfit(NSArray<NSNumber *> *stockPricesYesterday, NSUInteger length) {\n    NSInteger minPrice, maxProfit;\n\n    // make sure we have at least 2 prices\n    NSCAssert(length >= 2,\n        [@"parameter length: expected 2 or more but got %lu", (unsigned long)length]);\n\n    // we\'ll greedily update minPrice and maxProfit, so we initialize\n    // them to the first price and the first possible profit\n    minPrice = stockPricesYesterday[0].integerValue;\n    maxProfit = stockPricesYesterday[1].integerValue - stockPricesYesterday[0].integerValue;\n\n    // start at the second (index 1) time\n    // we can\'t sell at the first time, since we must buy first,\n    // and we can\'t buy and sell at the same time!\n    // if we started at index 0, we\'d try to buy *and* sell at time 0.\n    // this would give a profit of 0, which is a problem if our\n    // maxProfit is supposed to be *negative*--we\'d return 0!\n    for (NSUInteger i = 1; i < length; i++) {\n        NSInteger currentPrice = stockPricesYesterday[i].integerValue;\n\n        // see what our profit would be if we bought at the\n        // min price and sold at the current price\n        NSInteger potentialProfit = currentPrice - minPrice;\n\n        // update maxProfit if we can do better\n        maxProfit = MAX(maxProfit, potentialProfit);\n\n        // update minPrice so it\'s always\n        // the lowest price we\'ve seen so far\n        minPrice = MIN(minPrice, currentPrice);\n    }\n\n    return @(maxProfit);\n}\n'
 
 # Pull base image.
-FROM codewars/base-runner
+ARG repo
+FROM ${repo}/base-runner
+ARG codeuser
 
 # Optionally mount '/objc-vol' on ephemeral storage vol for faster
 # installing of packages, compiling, etc.
@@ -102,8 +104,8 @@ RUN . /usr/GNUstep/System/Library/Makefiles/GNUstep.sh && make && make install
 WORKDIR /
 
 # Set environment variables
-ENV USER codewarrior
-ENV HOME /home/codewarrior
+ENV USER ${codeuser}
+ENV HOME /home/${codeuser}
 ENV PATH ${HOME}/GNUstep/Tools:/usr/GNUstep/Local/Tools:/usr/GNUstep/System/Tools:${PATH}
 ENV LD_LIBRARY_PATH=${HOME}/GNUstep/Library/Libraries:/usr/GNUstep/Local/Library/Libraries:/usr/GNUstep/System/Library/Libraries:${LD_LIBRARY_PATH}
 ENV GUILE_LOAD_PATH=${HOME}/GNUstep/Library/Libraries/Guile:/usr/GNUstep/Local/Library/Libraries/Guile:/usr/GNUstep/System/Library/Libraries/Guile
@@ -129,7 +131,7 @@ WORKDIR /source/UnitKit
 RUN make test=yes && ukrun -q TestSource/TestUnitKit/TestUnitKit.bundle
 
 
-RUN ln -s /home/codewarrior /workspace
+RUN ln -s /home/${codeuser} /workspace
 ENV NPM_CONFIG_LOGLEVEL warn
 
 WORKDIR /runner
@@ -146,8 +148,8 @@ COPY test/runner.js test/
 COPY test/runners/objc_spec.js test/runners/
 COPY frameworks/objc /usr/local/include
 
-USER codewarrior
-ENV USER=codewarrior HOME=/home/codewarrior
-RUN mocha -t 5000 test/runners/objc_spec.js
+USER ${codeuser}
+ENV USER=${codeuser} HOME=/home/${codeuser}
+RUN CODEUSER=${codeuser} mocha -t 5000 test/runners/objc_spec.js
 
 ENTRYPOINT ["node"]

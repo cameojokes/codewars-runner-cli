@@ -1,4 +1,6 @@
-FROM codewars/base-runner
+ARG repo
+FROM ${repo}/base-runner
+ARG codeuser
 
 # luarocks with lua 5.2 needs to be built from source
 RUN apt-get update && apt-get install -y lua5.2 liblua5.2-dev unzip
@@ -12,7 +14,7 @@ RUN curl -fsSL https://github.com/luarocks/luarocks/archive/v2.4.2.tar.gz | tar 
 
 RUN luarocks install busted
 
-RUN ln -s /home/codewarrior /workspace
+RUN ln -s /home/${codeuser} /workspace
 ENV NPM_CONFIG_LOGLEVEL warn
 
 WORKDIR /runner
@@ -29,8 +31,8 @@ COPY frameworks/lua frameworks/lua
 COPY test/runner.js test/
 COPY test/runners/lua_spec.js test/runners/
 
-USER codewarrior
-ENV USER=codewarrior HOME=/home/codewarrior
-RUN mocha -t 5000 test/runners/lua_spec.js
+USER ${codeuser}
+ENV USER=${codeuser} HOME=/home/${codeuser}
+RUN CODEUSER=${codeuser} mocha -t 5000 test/runners/lua_spec.js
 
 ENTRYPOINT ["node"]

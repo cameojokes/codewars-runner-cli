@@ -1,5 +1,7 @@
 # Pull base image.
-FROM codewars/base-runner
+ARG repo
+FROM ${repo}/base-runner
+ARG codeuser
 
 # Install PHP
 # LC_ALL=C.UTF-8 workarounds the unicode issue for `add-apt-repository`
@@ -20,7 +22,7 @@ RUN curl -fsSL https://phar.phpunit.de/phpunit-5.7.phar -o phpunit.phar \
 # Install GNU R
 RUN apt-get install -y r-base
 
-RUN ln -s /home/codewarrior /workspace
+RUN ln -s /home/${codeuser} /workspace
 ENV NPM_CONFIG_LOGLEVEL warn
 
 WORKDIR /runner
@@ -39,8 +41,8 @@ COPY test/runner.js test/
 COPY test/runners/php_spec.js test/runners/
 COPY test/runners/r_spec.js test/runners/
 
-USER codewarrior
-ENV USER=codewarrior HOME=/home/codewarrior
-RUN mocha -t 3000 test/runners/php_spec.js
+USER ${codeuser}
+ENV USER=${codeuser} HOME=/home/${codeuser}
+RUN CODEUSER=${codeuser} mocha -t 3000 test/runners/php_spec.js
 
 ENTRYPOINT ["node"]

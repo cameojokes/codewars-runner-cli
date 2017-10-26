@@ -1,8 +1,10 @@
-# RUN-USING:      docker run --rm --name=node codewars/node-runner --help
-# EXAMPLE USAGE:  docker run --rm codewars/node-runner run -l javascript -c "console.log(1+1)"
+# RUN-USING:      docker run --rm --name=node ${repo}/node-runner --help
+# EXAMPLE USAGE:  docker run --rm ${repo}/node-runner run -l javascript -c "console.log(1+1)"
 
 # Pull base image.
-FROM codewars/base-runner
+ARG repo
+FROM ${repo}/base-runner
+ARG codeuser
 
 # Install additional libraries
 # NOTE: due to this issue https://github.com/npm/npm/issues/9863 we need to install everything at once, which sucks
@@ -26,7 +28,7 @@ RUN npm install -gq "typings@^2"
 RUN npm -g install "typescript@^2.4"
 
 
-RUN ln -s /home/codewarrior /workspace
+RUN ln -s /home/${codeuser} /workspace
 ENV NPM_CONFIG_LOGLEVEL warn
 
 WORKDIR /runner
@@ -57,13 +59,13 @@ COPY frameworks/javascript/display.js /runner/node_modules/chai-display/display.
 # add typings into a cleaner path for inclusion
 COPY typings/main/ambient /runner/typings
 
-USER codewarrior
-ENV USER=codewarrior HOME=/home/codewarrior
+USER ${codeuser}
+ENV USER=${codeuser} HOME=/home/${codeuser}
 ENV NODE_PATH=/usr/lib/node_modules:/runner/node_modules
 
 # Run the test suite to make sure this thing works
-RUN mocha -t 10000 test/runners/javascript_spec.js
-RUN mocha -t 10000 test/runners/coffeescript_spec.js
-RUN mocha -t 10000 test/runners/typescript_spec.js
+RUN CODEUSER=${codeuser} mocha -t 10000 test/runners/javascript_spec.js
+RUN CODEUSER=${codeuser} mocha -t 10000 test/runners/coffeescript_spec.js
+RUN CODEUSER=${codeuser} mocha -t 10000 test/runners/typescript_spec.js
 
 ENTRYPOINT ["node"]

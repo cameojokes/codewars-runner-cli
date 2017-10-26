@@ -1,4 +1,6 @@
-FROM codewars/base-runner
+ARG repo
+FROM ${repo}/base-runner
+ARG codeuser
 
 # Setup the pre-requisites / install dart TODO: REMOVE GIT
 RUN \
@@ -13,15 +15,15 @@ RUN \
 ENV DART_SDK /usr/lib/dart
 ENV PATH $DART_SDK/bin:$PATH
 
-RUN ln -s /home/codewarrior /workspace
+RUN ln -s /home/${codeuser} /workspace
 ENV NPM_CONFIG_LOGLEVEL warn
 
 WORKDIR /runner
 COPY package.json package.json
 RUN npm install --production
 
-USER codewarrior
-ENV USER=codewarrior HOME=/home/codewarrior
+USER ${codeuser}
+ENV USER=${codeuser} HOME=/home/${codeuser}
 ENV PATH=$PATH:$HOME/.pub-cache/bin
 
 # Do dart package setup and pub get etc
@@ -42,6 +44,6 @@ COPY examples/dart.yml examples/
 COPY test/runner.js test/
 COPY test/runners/dart_spec.js test/runners/
 
-RUN mocha -t 10000 test/runners/dart_spec.js
+RUN CODEUSER=${codeuser} mocha -t 10000 test/runners/dart_spec.js
 
 ENTRYPOINT ["node"]

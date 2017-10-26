@@ -47,7 +47,7 @@ describe('javascript runner', function() {
           language: 'javascript',
           code: `
                         console.log(1+4);
-                        console.log(require('fs').readFileSync('/home/codewarrior/solution.txt', 'utf8'));
+                        console.log(require('fs').readFileSync('/home/${process.env.CODEUSER}/solution.txt', 'utf8'));
                     `
         }, function(buffer) {
           expect(buffer.stdout).to.contain("5");
@@ -58,9 +58,9 @@ describe('javascript runner', function() {
       it('should allow a shell script to be ran', function(done) {
         runner.run({
           language: 'javascript',
-          bash: 'echo "test 123" >> /home/codewarrior/test.txt ; ls',
+          bash: `echo "test 123" >> /home/${process.env.CODEUSER}/test.txt ; ls`,
           code: `
-                        console.log(require('fs').readFileSync('/home/codewarrior/test.txt', 'utf8'));
+                        console.log(require('fs').readFileSync('/home/${process.env.CODEUSER}/test.txt', 'utf8'));
                     `
         }, function(buffer) {
           expect(buffer.stdout).to.contain("test 123");

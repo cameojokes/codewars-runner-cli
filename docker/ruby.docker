@@ -1,10 +1,12 @@
-# BUILD-USING:    docker build -t codewars/runner-ruby .
-# TEST-USING:     docker run --rm -i -t --name=test-runner-ruby --entrypoint=/bin/bash codewars/runner-ruby -s
-# RUN-USING:      docker run --rm --name=runner-ruby codewars/runner-ruby --help
-# EXAMPLE USAGE:  docker run --rm codewars/runner-ruby run -l ruby -c "puts 1+1"
+# BUILD-USING:    docker build -t ${repo}/runner-ruby .
+# TEST-USING:     docker run --rm -i -t --name=test-runner-ruby --entrypoint=/bin/bash ${repo}/runner-ruby -s
+# RUN-USING:      docker run --rm --name=runner-ruby ${repo}/runner-ruby --help
+# EXAMPLE USAGE:  docker run --rm ${repo}/runner-ruby run -l ruby -c "puts 1+1"
 
 # Pull base image.
-FROM codewars/base-runner
+ARG repo
+FROM ${repo}/base-runner
+ARG codeuser
 
 #Install ruby
 # skip installing gem documentation
@@ -135,17 +137,17 @@ RUN gem install --no-ri --no-rdoc \
 	ably \
 	bcrypt
 
-USER codewarrior
+USER ${codeuser}
 
 # Sample Database
 # http://www.postgresqltutorial.com/postgresql-sample-database/#
 
 ADD sample_data /runner/sample_data
 RUN /usr/lib/postgresql/9.6/bin/pg_ctl -w start \
-    && createdb -U codewarrior spec \
-    && createdb -U codewarrior dvdrental \
-    && pg_restore -U codewarrior -d dvdrental -v /runner/sample_data/dvdrental.tar || true \
-#    && psql -f /runner/sample_data/mlb-samples.sql sports codewarrior \
+    && createdb -U ${codeuser} spec \
+    && createdb -U ${codeuser} dvdrental \
+    && pg_restore -U ${codeuser} -d dvdrental -v /runner/sample_data/dvdrental.tar || true \
+#    && psql -f /runner/sample_data/mlb-samples.sql sports ${codeuser} \
     && psql -l \
     && /usr/lib/postgresql/9.6/bin/pg_ctl -w stop
 
@@ -157,11 +159,11 @@ RUN apt-get update && apt-get -y install csh tcsh
 # Install extra shell packages
 RUN apt-get update && apt-get -y install mlocate bc
 
-# allow codewarrior to install gems
-RUN chown codewarrior /usr/local/bundle
+# allow ${codeuser} to install gems
+RUN chown ${codeuser} /usr/local/bundle
 
 
-RUN ln -s /home/codewarrior /workspace
+RUN ln -s /home/${codeuser} /workspace
 ENV NPM_CONFIG_LOGLEVEL warn
 
 WORKDIR /runner
@@ -183,12 +185,12 @@ COPY test/runners/ruby_spec.js test/runners/
 COPY test/runners/shell_spec.js test/runners/
 COPY test/runners/sql_spec.js test/runners/
 
-USER codewarrior
-ENV USER=codewarrior HOME=/home/codewarrior
+USER ${codeuser}
+ENV USER=${codeuser} HOME=/home/${codeuser}
 
-RUN mocha -t 5000 test/runners/ruby_spec.js
-RUN mocha -t 5000 test/runners/shell_spec.js
-#RUN mocha -t 5000 test/runners/sql_spec.js
+RUN CODEUSER=${codeuser} mocha -t 5000 test/runners/ruby_spec.js
+RUN CODEUSER=${codeuser} mocha -t 5000 test/runners/shell_spec.js
+#RUN CODEUSER=${codeuser} mocha -t 5000 test/runners/sql_spec.js
 RUN sh /runner/lib/cleanup.sh
 
 ENTRYPOINT ["node"]

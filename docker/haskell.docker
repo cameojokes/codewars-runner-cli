@@ -1,9 +1,11 @@
-# BUILD-USING:    docker build -t codewars/runner-haskell .
-# TEST-USING:     docker run --rm -i -t --name=test-runner-haskell --entrypoint=/bin/bash codewars/runner-haskell -s
-# RUN-USING:      docker run --rm --name=runner-haskell codewars/runner-haskell --help
+# BUILD-USING:    docker build -t ${repo}/runner-haskell .
+# TEST-USING:     docker run --rm -i -t --name=test-runner-haskell --entrypoint=/bin/bash ${repo}/runner-haskell -s
+# RUN-USING:      docker run --rm --name=runner-haskell ${repo}/runner-haskell --help
 
 # Pull base image.
-FROM codewars/base-runner
+ARG repo
+FROM ${repo}/base-runner
+ARG codeuser
 
 # =========================================================================
 # Haskell stuff begin
@@ -17,13 +19,13 @@ ENV RESOLVER=lts-6.24 GHC_VER=7.10.3 CABAL_VER=1.22 HAPPY_VER=1.19.5
 
 RUN apt-get install -y ghc-${GHC_VER} cabal-install-${CABAL_VER} happy-${HAPPY_VER}
 
-USER codewarrior
-ENV HOME /home/codewarrior
+USER ${codeuser}
+ENV HOME /home/${codeuser}
 ENV PATH=${HOME}/.cabal/bin:/opt/ghc/${GHC_VER}/bin:/opt/cabal/${CABAL_VER}/bin:/opt/happy/${HAPPY_VER}/bin:${PATH}
 RUN mkdir ${HOME}/.cabal ${HOME}/.cabal/bin
 RUN echo "ghc-options: -fno-warn-tabs" >> ${HOME}/.cabal/config
 RUN echo "remote-repo: stackage_${RESOLVER}:http://www.stackage.org/${RESOLVER}" >> ${HOME}/.cabal/config
-RUN echo "remote-repo-cache: /home/codewarrior/.cabal/packages" >> ${HOME}/.cabal/config
+RUN echo "remote-repo-cache: /home/${codeuser}/.cabal/packages" >> ${HOME}/.cabal/config
 RUN cabal update
 RUN cabal install cabal-install
 
@@ -39,7 +41,7 @@ RUN cabal install hspec hspec-core hspec-discover
 # =========================================================================
 
 USER root
-RUN ln -s /home/codewarrior /workspace
+RUN ln -s /home/${codeuser} /workspace
 ENV NPM_CONFIG_LOGLEVEL warn
 
 WORKDIR /runner
@@ -56,8 +58,8 @@ COPY test/runner.js test/
 COPY test/runners/haskell_spec.js test/runners/
 COPY frameworks/haskell frameworks/haskell
 
-USER codewarrior
-ENV USER=codewarrior HOME=/home/codewarrior
-RUN mocha -t 10000 test/runners/haskell_spec.js
+USER ${codeuser}
+ENV USER=${codeuser} HOME=/home/${codeuser}
+RUN CODEUSER=${codeuser} mocha -t 10000 test/runners/haskell_spec.js
 
 ENTRYPOINT ["node"]

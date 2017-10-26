@@ -1,14 +1,16 @@
-FROM codewars/base-runner
+ARG repo
+FROM ${repo}/base-runner
+ARG codeuser
 
 # Setup env
-USER codewarrior
-ENV USER=codewarrior HOME=/home/codewarrior
+USER ${codeuser}
+ENV USER=${codeuser} HOME=/home/${codeuser}
 
 # Install rustup with the Rust v1.15.1 toolchain
 RUN curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain 1.15.1
 
 USER root
-RUN ln -s /home/codewarrior /workspace
+RUN ln -s /home/${codeuser} /workspace
 ENV NPM_CONFIG_LOGLEVEL warn
 
 WORKDIR /runner
@@ -24,10 +26,10 @@ COPY examples/rust.yml examples/
 COPY test/runner.js test/
 COPY test/runners/rust_spec.js test/runners/
 
-USER codewarrior
-ENV USER=codewarrior HOME=/home/codewarrior
+USER ${codeuser}
+ENV USER=${codeuser} HOME=/home/${codeuser}
 # ~/.cargo/env
 ENV PATH=$HOME/.cargo/bin:$PATH
-RUN mocha -t 10000 test/runners/rust_spec.js
+RUN CODEUSER=${codeuser} mocha -t 10000 test/runners/rust_spec.js
 
 ENTRYPOINT ["node"]

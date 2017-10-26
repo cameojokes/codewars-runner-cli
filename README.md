@@ -1,18 +1,7 @@
 # About
 
-[![Build Status](https://travis-ci.org/Codewars/codewars-runner-cli.svg?branch=master)](https://travis-ci.org/Codewars/codewars-runner-cli)
-
-This project is used by [Codewars](http://www.codewars.com) and [Qualified.io](https://www.qualified.io) to execute small sets of code within various languages, using various testing frameworks.
-Each time code is run, it is executed within a Docker container in order to secure unsafe code execution.
-
 All execution is done within Docker, with a Node CLI app contained within each container
 that manages the code execution for that specific language environment and returns the result via stdout.
-
-## Contributions
-
-This project has been open-sourced so that the Codewars and Qualified communities can contribute support for new languages and
-frameworks. See the [Language Support Status section](#user-content-language-support-status) for more information regarding which languages are currently supported
-and where their Codewars/Qualified support has been added.
 
 ## Basic Usage
 
@@ -124,6 +113,11 @@ Many languages are currently supported in various states of completeness. This l
 You should have [Docker](https://www.docker.com/) installed, if not do that first. Before you can run any of the code
 environments you will need to build the proper Docker image. To get started lets work with the
 node image.
+
+*On mac:*
+Run `brew install cairo` (one time)
+
+Run `npm i`
 
 Run `make node` to build the base and node images. This will take a few minutes. You can speed up the process by first
 downloading the existing images that you intend to work on, which will allow you to only need to build when you make a change.

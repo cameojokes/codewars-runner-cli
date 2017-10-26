@@ -1,5 +1,7 @@
-# EXAMPLE USAGE:  docker run --rm codewars/swift-runner run -l swift -c "print(1+1)"
-FROM codewars/base-runner
+# EXAMPLE USAGE:  docker run --rm ${repo}/swift-runner run -l swift -c "print(1+1)"
+ARG repo
+FROM ${repo}/base-runner
+ARG codeuser
 
 # Based on https://github.com/swiftdocker/docker-swift/blob/master/Dockerfile
 RUN apt-get -q update && \
@@ -50,7 +52,7 @@ RUN set -ex \
    && chmod -R o+r /usr/lib/swift
 
 
-RUN ln -s /home/codewarrior /workspace
+RUN ln -s /home/${codeuser} /workspace
 ENV NPM_CONFIG_LOGLEVEL warn
 
 WORKDIR /runner
@@ -67,8 +69,8 @@ COPY frameworks/swift frameworks/swift
 COPY test/runner.js test/
 COPY test/runners/swift_spec.js test/runners/
 
-USER codewarrior
-ENV USER=codewarrior HOME=/home/codewarrior
-RUN mocha -t 5000 test/runners/swift_spec.js
+USER ${codeuser}
+ENV USER=${codeuser} HOME=/home/${codeuser}
+RUN CODEUSER=${codeuser} mocha -t 5000 test/runners/swift_spec.js
 
 ENTRYPOINT ["node"]

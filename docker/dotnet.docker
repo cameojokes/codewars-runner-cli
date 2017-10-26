@@ -1,9 +1,11 @@
-# BUILD-USING:    docker build -t codewars/runner-dotnet .
-# TEST-USING:     docker run --rm -i -t --name=test-runner-dotnet --entrypoint=/bin/bash codewars/runner-dotnet -s
-# RUN-USING:      docker run --rm --name=runner-dotnet codewars/runner-dotnet --help
+# BUILD-USING:    docker build -t ${repo}/runner-dotnet .
+# TEST-USING:     docker run --rm -i -t --name=test-runner-dotnet --entrypoint=/bin/bash ${repo}/runner-dotnet -s
+# RUN-USING:      docker run --rm --name=runner-dotnet ${repo}/runner-dotnet --help
 
 # Pull base image.
-FROM codewars/base-runner
+ARG repo
+FROM ${repo}/base-runner
+ARG codeuser
 
 RUN echo "Forcing Image Rebuild"
 RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 3FA7E0328081BFF6A14DA29AA6A19B38D3D831EF
@@ -33,7 +35,7 @@ RUN apt-get install -y nuget
 # RUN (cd /netcore && dotnet restore)
 
 
-RUN ln -s /home/codewarrior /workspace
+RUN ln -s /home/${codeuser} /workspace
 ENV NPM_CONFIG_LOGLEVEL warn
 
 WORKDIR /runner
@@ -54,11 +56,11 @@ COPY test/runner.js test/
 COPY test/runners/csharp_spec.js test/runners/
 COPY test/runners/fsharp_spec.js test/runners/
 
-USER codewarrior
-ENV USER=codewarrior HOME=/home/codewarrior
+USER ${codeuser}
+ENV USER=${codeuser} HOME=/home/${codeuser}
 
 # RUN mocha -t 10000 test/runners/csharp_spec.js
-RUN mocha -t 10000 test/runners/fsharp_spec.js
+RUN CODEUSER=${codeuser} mocha -t 10000 test/runners/fsharp_spec.js
 RUN sh /runner/lib/cleanup.sh
 RUN mono -V
 

@@ -1,5 +1,3 @@
-HOSTNAME=codewars
-
 # Building erlang images have been suspended (frozen) until they are able to be repaired
 CONTAINERS=node dotnet jvm java python ruby alt rust julia systems dart crystal ocaml swift haskell objc go lua esolangs chapel nim r erlang
 
@@ -11,13 +9,15 @@ all: ${CONTAINERS}
 
 recent: ${RECENT_CONTAINERS}
 
-base:
+base: guard-HOSTNAME guard-REPO guard-CODEUSER
 	cp docker/$@.docker ./Dockerfile
-	docker build -t $(HOSTNAME)/$@-runner .
+	docker build -t $(REPO)/$@-runner --build-arg codeuser=$(CODEUSER) .
+	docker tag $(REPO)/$@-runner:latest $(HOSTNAME)/$(REPO)/$@-runner:latest
 
-${CONTAINERS}:
+${CONTAINERS}: guard-HOSTNAME guard-REPO guard-CODEUSER
 	cp docker/$@.docker ./Dockerfile
-	docker build -t $(HOSTNAME)/$@-runner .
+	docker build -t $(REPO)/$@-runner --build-arg repo=$(REPO) --build-arg codeuser=$(CODEUSER) .
+	docker tag $(REPO)/$@-runner:latest $(HOSTNAME)/$(REPO)/$@-runner:latest
 
 # Kill all of the in-flight and exited docker containers
 docker_rm:
@@ -32,40 +32,46 @@ clean: docker_rmi
 
 deep-clean: docker_rmi
 
-push:
-	docker push codewars/base-runner
-	docker push codewars/node-runner
-	docker push codewars/ruby-runner
-	docker push codewars/python-runner
-	docker push codewars/dotnet-runner
-	docker push codewars/jvm-runner
-	docker push codewars/java-runner
-	docker push codewars/haskell-runner
-	docker push codewars/systems-runner
-	docker push codewars/erlang-runner
-	docker push codewars/alt-runner
-	docker push codewars/rust-runner
-	docker push codewars/crystal-runner
-	docker push codewars/dart-runner
-	docker push codewars/ocaml-runner
-	docker push codewars/objc-runner
-	docker push codewars/swift-runner || true
+push: guard-HOSTNAME guard-REPO
+	docker push $(HOSTNAME)/$(REPO)/base-runner
+	docker push $(HOSTNAME)/$(REPO)/node-runner
+	docker push $(HOSTNAME)/$(REPO)/ruby-runner
+	docker push $(HOSTNAME)/$(REPO)/python-runner
+	docker push $(HOSTNAME)/$(REPO)/dotnet-runner
+	docker push $(HOSTNAME)/$(REPO)/jvm-runner
+	docker push $(HOSTNAME)/$(REPO)/java-runner
+	docker push $(HOSTNAME)/$(REPO)/haskell-runner
+	docker push $(HOSTNAME)/$(REPO)/systems-runner
+	docker push $(HOSTNAME)/$(REPO)/erlang-runner
+	docker push $(HOSTNAME)/$(REPO)/alt-runner
+	docker push $(HOSTNAME)/$(REPO)/rust-runner
+	docker push $(HOSTNAME)/$(REPO)/crystal-runner
+	docker push $(HOSTNAME)/$(REPO)/dart-runner
+	docker push $(HOSTNAME)/$(REPO)/ocaml-runner
+	docker push $(HOSTNAME)/$(REPO)/objc-runner
+	docker push $(HOSTNAME)/$(REPO)/swift-runner || true
 
-pull:
-	docker pull codewars/base-runner
-	docker pull codewars/node-runner
-	docker pull codewars/ruby-runner
-	docker pull codewars/python-runner
-	docker pull codewars/dotnet-runner
-	docker pull codewars/jvm-runner
-	docker pull codewars/java-runner
-	docker pull codewars/haskell-runner
-	docker pull codewars/systems-runner
-	docker pull codewars/erlang-runner
-	docker pull codewars/alt-runner
-	docker pull codewars/rust-runner
-	docker pull codewars/crystal-runner
-	docker pull codewars/dart-runner
-	docker pull codewars/ocaml-runner
-	docker pull codewars/objc-runner
-	docker pull codewars/swift-runner || true
+pull: guard-HOSTNAME guard-REPO
+	docker pull $(HOSTNAME)/$(REPO)/base-runner
+	docker pull $(HOSTNAME)/$(REPO)/node-runner
+	docker pull $(HOSTNAME)/$(REPO)/ruby-runner
+	docker pull $(HOSTNAME)/$(REPO)/python-runner
+	docker pull $(HOSTNAME)/$(REPO)/dotnet-runner
+	docker pull $(HOSTNAME)/$(REPO)/jvm-runner
+	docker pull $(HOSTNAME)/$(REPO)/java-runner
+	docker pull $(HOSTNAME)/$(REPO)/haskell-runner
+	docker pull $(HOSTNAME)/$(REPO)/systems-runner
+	docker pull $(HOSTNAME)/$(REPO)/erlang-runner
+	docker pull $(HOSTNAME)/$(REPO)/alt-runner
+	docker pull $(HOSTNAME)/$(REPO)/rust-runner
+	docker pull $(HOSTNAME)/$(REPO)/crystal-runner
+	docker pull $(HOSTNAME)/$(REPO)/dart-runner
+	docker pull $(HOSTNAME)/$(REPO)/ocaml-runner
+	docker pull $(HOSTNAME)/$(REPO)/objc-runner
+	docker pull $(HOSTNAME)/$(REPO)/swift-runner || true
+
+guard-%:
+	@ if [ "${${*}}" = "" ]; then \
+	echo "Environment variable $* not set"; \
+	exit 1; \
+	fi

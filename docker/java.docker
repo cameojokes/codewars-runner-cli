@@ -1,8 +1,10 @@
-# BUILD-USING:    docker build -t codewars/runner-jvm .
-# EXAMPLE USAGE:  (Hello world): docker run --rm --name=runner-jvm codewars/runner-jvm run -l java -c $'class Solution {\npublic static void main(String[] args){\nSystem.out.println("Hello world");\n}}'
+# BUILD-USING:    docker build -t ${repo}/runner-jvm .
+# EXAMPLE USAGE:  (Hello world): docker run --rm --name=runner-jvm ${repo}/runner-jvm run -l java -c $'class Solution {\npublic static void main(String[] args){\nSystem.out.println("Hello world");\n}}'
 
 # Pull base image.
-FROM codewars/base-runner
+ARG repo
+FROM ${repo}/base-runner
+ARG codeuser
 
 # Needed to run add-apt-repository
 RUN apt-get -y install software-properties-common
@@ -51,11 +53,11 @@ RUN set -o errexit -o nounset \
 	&& mv "gradle-${GRADLE_VERSION}" "${GRADLE_HOME}/" \
 	&& ln --symbolic "${GRADLE_HOME}/bin/gradle" /usr/bin/gradle
 
-RUN mkdir /usr/local/.gradle \
- && chown codewarrior /usr/local/.gradle
+RUN mkdir /usr/local/.gradle
+RUN echo ${codeuser} > /codeuser
+RUN chown ${codeuser} /usr/local/.gradle
 
-
-RUN ln -s /home/codewarrior /workspace
+RUN ln -s /home/${codeuser} /workspace
 ENV NPM_CONFIG_LOGLEVEL warn
 
 WORKDIR /runner
@@ -73,15 +75,15 @@ COPY test/runners/java_spec.js test/runners/
 COPY frameworks/java/prewarm.sh prewarm.sh
 
 COPY frameworks/java frameworks/java
-RUN chown codewarrior frameworks/java
+RUN chown ${codeuser} frameworks/java
 RUN gradle --version
 
-USER codewarrior
-ENV USER=codewarrior HOME=/home/codewarrior
+USER ${codeuser}
+ENV USER=${codeuser} HOME=/home/${codeuser}
 
 # pre-install the default referenced java libraries
 RUN cd /runner/frameworks/java && gradle --stacktrace --no-daemon compileTestJava
 
-RUN mocha -t 20000 test/runners/java_spec.js
+RUN CODEUSER=${codeuser} mocha -t 20000 test/runners/java_spec.js
 
 ENTRYPOINT ["node"]

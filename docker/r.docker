@@ -1,4 +1,6 @@
-FROM codewars/base-runner
+ARG repo
+FROM ${repo}/base-runner
+ARG codeuser
 
 # https://cran.r-project.org/bin/linux/ubuntu/README
 RUN set -ex \
@@ -11,7 +13,7 @@ RUN set -ex \
 # TODO version lock. need `devtools` package?
 RUN R -q -e 'install.packages("testthat", repo="https://cran.rstudio.com/")' && rm -rf /tmp/*
 
-RUN ln -s /home/codewarrior /workspace
+RUN ln -s /home/${codeuser} /workspace
 ENV NPM_CONFIG_LOGLEVEL warn
 
 WORKDIR /runner
@@ -28,8 +30,8 @@ COPY frameworks/r frameworks/r
 COPY test/runner.js test/
 COPY test/runners/r_spec.js test/runners/
 
-USER codewarrior
-ENV USER=codewarrior HOME=/home/codewarrior
-RUN mocha -t 5000 test/runners/r_spec.js
+USER ${codeuser}
+ENV USER=${codeuser} HOME=/home/${codeuser}
+RUN CODEUSER=${codeuser} mocha -t 5000 test/runners/r_spec.js
 
 ENTRYPOINT ["node"]

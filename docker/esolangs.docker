@@ -1,10 +1,12 @@
 # Pull base image.
-FROM codewars/base-runner
+ARG repo
+FROM ${repo}/base-runner
+ARG codeuser
 
 # Install "bf" Fast Brainf**k Interpreter
 RUN apt-get update && apt-get install -y --no-install-recommends bf
 
-RUN ln -s /home/codewarrior /workspace
+RUN ln -s /home/${codeuser} /workspace
 ENV NPM_CONFIG_LOGLEVEL warn
 
 WORKDIR /runner
@@ -24,9 +26,9 @@ COPY frameworks/javascript/chai-display.js frameworks/javascript/
 COPY test/runner.js test/
 COPY test/runners/bf_spec.js test/runners/
 
-USER codewarrior
-ENV USER=codewarrior HOME=/home/codewarrior
+USER ${codeuser}
+ENV USER=${codeuser} HOME=/home/${codeuser}
 
-RUN mocha -t 10000 test/runners/bf_spec.js
+RUN CODEUSER=${codeuser} mocha -t 10000 test/runners/bf_spec.js
 
 ENTRYPOINT ["node"]

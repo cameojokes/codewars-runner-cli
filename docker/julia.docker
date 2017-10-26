@@ -1,15 +1,17 @@
-# EXAMPLE USAGE:  docker run --rm codewars/julia-runner run -l julia -c "print 1+1 "
+# EXAMPLE USAGE:  docker run --rm ${repo}/julia-runner run -l julia -c "print 1+1 "
 
 
-FROM codewars/base-runner
+ARG repo
+ARG codeuser
+FROM ${repo}/base-runner
 #install julia
 RUN apt-get update \
   && apt-get install -y --no-install-recommends ca-certificates git \
   && rm -rf /var/lib/apt/lists/*
 
 # Set environment variables
-ENV USER codewarrior
-ENV HOME /home/codewarrior
+ENV USER ${codeuser}
+ENV HOME /home/${codeuser}
 ENV JULIA_PATH /usr/local/julia
 ENV JULIA_VERSION 0.6.0
 
@@ -28,7 +30,7 @@ RUN mkdir $JULIA_PATH \
 
 ENV PATH $JULIA_PATH/bin:$PATH
 
-RUN ln -s /home/codewarrior /workspace
+RUN ln -s /home/${codeuser} /workspace
 ENV NPM_CONFIG_LOGLEVEL warn
 
 WORKDIR /runner
@@ -45,8 +47,8 @@ COPY test/runner.js test/
 COPY test/runners/julia_spec.js test/runners/
 COPY frameworks/julia frameworks/julia
 
-USER codewarrior
-ENV USER=codewarrior HOME=/home/codewarrior
+USER ${codeuser}
+ENV USER=${codeuser} HOME=/home/${codeuser}
 RUN mocha -t 5000 test/runners/julia_spec.js
 
 ENTRYPOINT ["node"]

@@ -1,9 +1,11 @@
-# BUILD-USING:    docker build -t codewars/runner-jvm .
-# TEST-USING:     docker run --rm -i -t --name=test-runner-jvm --entrypoint=/bin/bash codewars/runner-jvm -s
-# RUN-USING:      docker run --rm --name=runner-jvm codewars/runner-jvm --help
+# BUILD-USING:    docker build -t ${repo}/runner-jvm .
+# TEST-USING:     docker run --rm -i -t --name=test-runner-jvm --entrypoint=/bin/bash ${repo}/runner-jvm -s
+# RUN-USING:      docker run --rm --name=runner-jvm ${repo}/runner-jvm --help
 
 # Pull base image.
-FROM codewars/base-runner
+ARG repo
+FROM ${repo}/base-runner
+ARG codeuser
 
 # Needed to run add-apt-repository
 RUN apt-get -y install software-properties-common
@@ -36,7 +38,7 @@ RUN curl -L https://github.com/JetBrains/kotlin/releases/download/v1.0.3/kotlin-
 RUN unzip /tmp/kotlin-compiler-1.0.3.zip -d /usr/local/lib/kotlin && rm /tmp/kotlin-compiler-1.0.3.zip
 
 
-RUN ln -s /home/codewarrior /workspace
+RUN ln -s /home/${codeuser} /workspace
 ENV NPM_CONFIG_LOGLEVEL warn
 
 WORKDIR /runner
@@ -63,9 +65,9 @@ COPY test/runners/groovy_spec.js test/runners/
 COPY test/runners/kotlin_spec.js test/runners/
 COPY test/runners/scala_spec.js test/runners/
 
-USER codewarrior
-ENV USER=codewarrior HOME=/home/codewarrior
+USER ${codeuser}
+ENV USER=${codeuser} HOME=/home/${codeuser}
 ENV TIMEOUT 10000
-RUN mocha -t 10000 test/runners/{clojure,groovy,scala,kotlin}_spec.js
+RUN CODEUSER=${codeuser} mocha -t 10000 test/runners/{clojure,groovy,scala,kotlin}_spec.js
 
 ENTRYPOINT ["node"]

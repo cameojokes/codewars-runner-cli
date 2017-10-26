@@ -209,7 +209,7 @@ Test.assertEquals(runBF(String.fromCharCode(32, 10)), String.fromCharCode(64));`
         language: 'bf',
         code: '++++++++++[>+++>+++++++>+++++++++>++++++]++++>++++++]+++++<<<<<-]>>++.>>+.>--..+++.<<<<++.>>---.>>.+++.------.<-.<<<+.',
         fixture: `Test.describe("Your BF Hello World Program", function() {
-  var program = require('fs').readFileSync('/home/codewarrior/solution.txt', 'utf8');
+  var program = require('fs').readFileSync('/home/${process.env.CODEUSER}/solution.txt', 'utf8');
   Test.it('should return the string "Hello World!"', function() {
     Test.assertEquals(runBF(), "Hello World!");
   });
